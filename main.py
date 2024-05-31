@@ -9,7 +9,7 @@ import streamlit as st
 
 st.set_page_config(page_title="AI Whiteboard", page_icon="🎨", layout="wide")
 
-col1 , col2 = st.columns([2,1])
+col1 , col2 = st.columns([1,1])
 
 with col1:
     run = st.checkbox("Run", value=True)
@@ -59,10 +59,17 @@ def draw(info, prev_pos, canvas):
 def sendtoAI(model, canvas,fingers):
     if fingers == [1,1,1,1,1]:
         pil_image = Image.fromarray(canvas)
-        response = model.generate_content(["solve this problem", pil_image])
+        prompt = '''
+        You're an experienced online mathematics tutor catering to students studying advanced topics in mathematics. Your specialty lies in solving complex mathematical problems based on given images and textual descriptions. Your goal is to provide a detailed solution based on the information provided within an image on Gemini.
+        Analyzing the image and accompanying text, __, you need to explain the mathematical concepts or solutions effectively for better comprehension. Ensure that your response is clear, concise, and provides a step-by-step explanation of the solution.
+        Remember to break down the problem into smaller, understandable components, and use diagrams or illustrations its necessary to enhance the explanation further. Additionally, focus on presenting the solution logically and coherently, making it easy for the student to follow along and grasp the mathematical concepts effectively.
+        For example, when faced with a similar task, you carefully analyze the given image, identify the key mathematical elements, and methodically explain each step with clarity and precision. This approach not only ensures a comprehensive understanding but also helps the student improve their problem-solving skills in mathematics.
+
+        note:- make sure your given text will be in multi line \n\n and point wise detailed description
+        '''	
+        response = model.generate_content([prompt, pil_image])
+        print(response)
         return response.text
-
-
 
 prev_pos = None
 canvas = None
@@ -80,7 +87,6 @@ while True:
         fingers, lmList = info
         prev_pos= draw(info, prev_pos, canvas)
         output_text = sendtoAI(model, canvas, fingers)
-
 
     image_combined = cv2.addWeighted(img, 0.7, canvas, 0.3, 0)
     FRAME_WINDOW.image(image_combined, channels="BGR")
